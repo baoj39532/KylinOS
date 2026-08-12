@@ -27,6 +27,8 @@ pyenv_image="$dockerhub_repo:v10-sp2-amd64-pyenv-$build_date"
 
 pyenv_oracle_image="$dockerhub_repo:v10-sp2-amd64-pyenv-oracle-$build_date"
 
+tomcat9_image="$dockerhub_repo:v10-sp2-amd64-dragonwell-extended11-tomcat9-$build_date"
+
 nginx_image="$dockerhub_repo:v10-sp2-amd64-nginx-$build_date"
 
 nvm_image="$dockerhub_repo:v10-sp2-amd64-nvm-$build_date"
