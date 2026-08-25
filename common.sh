@@ -1,6 +1,6 @@
 #!/bin/bash
 
-build_date=`date +"%Y%m%d"`
+build_date=${BUILD_DATE:-$(date +"%Y%m%d")}
 dockerhub_repo="ln3333/kylinos"
 
 os_image="$dockerhub_repo:v10-sp2-amd64-$build_date"

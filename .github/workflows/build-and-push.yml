@@ -1,0 +1,80 @@
+name: build-and-push
+
+# 提交到 main 或手动触发时，按依赖顺序构建并推送镜像到 Docker Hub。
+# 复用各目录下现有的 build.sh（内部已 docker build + docker push）。
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      build_date: ${{ steps.d.outputs.date }}
+    steps:
+      - id: d
+        run: echo "date=$(date +%Y%m%d)" >> "$GITHUB_OUTPUT"
+
+  os:
+    needs: prepare
+    runs-on: ubuntu-latest
+    env:
+      BUILD_DATE: ${{ needs.prepare.outputs.build_date }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - run: bash ./build.sh
+        working-directory: os
+
+  all-tools:
+    needs: [prepare, os]
+    runs-on: ubuntu-latest
+    env:
+      BUILD_DATE: ${{ needs.prepare.outputs.build_date }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - run: bash ./build-all-tools.sh
+
+  runtimes:
+    needs: [prepare, os]
+    runs-on: ubuntu-latest
+    env:
+      BUILD_DATE: ${{ needs.prepare.outputs.build_date }}
+    strategy:
+      fail-fast: false
+      matrix:
+        dir: [openjdk, oraclejdk, dragonwell-extended-jdk, python3, nodejs, nginx]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - run: bash ./build.sh
+        working-directory: ${{ matrix.dir }}
+
+  maven-and-tomcat:
+    needs: [prepare, runtimes]
+    runs-on: ubuntu-latest
+    env:
+      BUILD_DATE: ${{ needs.prepare.outputs.build_date }}
+    strategy:
+      fail-fast: false
+      matrix:
+        dir: [openjdk-maven, oraclejdk-maven, dragonwell-extended-jdk-maven, tomcat]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - run: bash ./build.sh
+        working-directory: ${{ matrix.dir }}
