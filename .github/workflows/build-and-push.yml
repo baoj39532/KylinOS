@@ -30,6 +30,34 @@ jobs:
       - run: bash ./build.sh
         working-directory: os
 
+  os-arm64:
+    needs: prepare
+    runs-on: ubuntu-24.04-arm
+    env:
+      BUILD_DATE: ${{ needs.prepare.outputs.build_date }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - run: bash ./build-arm64.sh
+        working-directory: os
+
+  rust-arm64:
+    needs: [prepare, os-arm64]
+    runs-on: ubuntu-24.04-arm
+    env:
+      BUILD_DATE: ${{ needs.prepare.outputs.build_date }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - run: bash ./build.sh
+        working-directory: rust
+
   all-tools:
     needs: [prepare, os]
     runs-on: ubuntu-latest
