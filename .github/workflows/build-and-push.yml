@@ -51,7 +51,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        dir: [openjdk, oraclejdk, dragonwell-extended-jdk, python3, nodejs, nginx]
+        dir: [openjdk, dragonwell-extended-jdk, python3, nodejs, nginx]
     steps:
       - uses: actions/checkout@v4
       - uses: docker/login-action@v3
@@ -69,7 +69,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        dir: [openjdk-maven, oraclejdk-maven, dragonwell-extended-jdk-maven, tomcat]
+        dir: [openjdk-maven, dragonwell-extended-jdk-maven, tomcat]
     steps:
       - uses: actions/checkout@v4
       - uses: docker/login-action@v3

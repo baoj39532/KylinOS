@@ -102,10 +102,10 @@ bash build-all-tools.sh
 
 1. `prepare`：生成本次统一的 `BUILD_DATE`。
 2. `os`：先构建并推送麒麟基础镜像。
-3. `all-tools` 与 `runtimes`：前者单独构建；后者用 matrix 并行构建 OpenJDK、Oracle JDK、Dragonwell、Python、Node.js、Nginx。
-4. `maven-and-tomcat`：等待全部 runtime 完成后，用 matrix 构建三组 Maven 镜像和 Tomcat。
+3. `all-tools` 与 `runtimes`：前者单独构建；后者用 matrix 并行构建 OpenJDK、Dragonwell、Python、Node.js、Nginx。
+4. `maven-and-tomcat`：等待全部 runtime 完成后，用 matrix 构建 OpenJDK/Dragonwell Maven 镜像和 Tomcat。
 
-CI 依赖仓库 Secrets：`DOCKERHUB_USERNAME`（值为 `botmark`）和 `DOCKERHUB_TOKEN`（具备推送权限的 Docker Hub token）。`copaw/` 不在该 workflow 中。
+CI 依赖仓库 Secrets：`DOCKERHUB_USERNAME`（值为 `botmark`）和 `DOCKERHUB_TOKEN`（具备推送权限的 Docker Hub token）。`copaw/` 不在该 workflow 中。Oracle JDK 及其 Maven 镜像因仓库不包含闭源安装包，当前也明确排除在 CI matrix 之外，只能在准备好合法的本地构建输入后手动构建。
 
 ## Agent 修改备忘
 
