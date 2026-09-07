@@ -1,4 +1,5 @@
 # syntax=docker/dockerfile:1
+# check=skip=InvalidDefaultArgInFrom
 
 ARG BASE_IMAGE
 
@@ -32,8 +33,11 @@ RUN curl --proto '=https' --tlsv1.2 -fsSL https://sh.rustup.rs -o /tmp/rustup-in
         --default-toolchain "$RUST_VERSION" \
     && rm -f /tmp/rustup-init.sh \
     && rustup component add rustfmt clippy \
-    && rustc --version | grep -q '^rustc 1\.98\.1 ' \
-    && rustc -vV | grep -qx 'host: aarch64-unknown-linux-gnu' \
+    && rustc --version > /tmp/rustc-version \
+    && grep -q '^rustc 1\.98\.1 ' /tmp/rustc-version \
+    && rustc -vV > /tmp/rustc-verbose \
+    && grep -qx 'host: aarch64-unknown-linux-gnu' /tmp/rustc-verbose \
+    && rm -f /tmp/rustc-version /tmp/rustc-verbose \
     && cargo --version \
     && rustfmt --version \
     && cargo clippy --version

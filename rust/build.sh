@@ -15,14 +15,16 @@ docker build "$script_dir" \
 
 docker run --rm --platform linux/arm64 "$arm64_rust1_98_1_image" /bin/bash -euxo pipefail -c '
     test "$(uname -m)" = "aarch64"
-    rustc --version | grep -q "^rustc 1\.98\.1 "
-    rustc -vV | grep -qx "host: aarch64-unknown-linux-gnu"
+    rustc_version="$(rustc --version)"
+    grep -q "^rustc 1\.98\.1 " <<< "$rustc_version"
+    rustc_verbose="$(rustc -vV)"
+    grep -qx "host: aarch64-unknown-linux-gnu" <<< "$rustc_verbose"
     cargo --version
     rustfmt --version
     cargo clippy --version
     printf "fn main() { println!(\"rust-arm64-ok\"); }\n" > /tmp/main.rs
     rustc /tmp/main.rs -o /tmp/rust-arm64-smoke
-    /tmp/rust-arm64-smoke | grep -qx "rust-arm64-ok"
+    test "$(/tmp/rust-arm64-smoke)" = "rust-arm64-ok"
 '
 
 docker push "$arm64_rust1_98_1_image"
