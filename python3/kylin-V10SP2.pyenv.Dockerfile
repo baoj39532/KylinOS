@@ -9,7 +9,7 @@ ENV PATH=$PATH:$PYENV_ROOT/bin:$PYENV_ROOT/shims
 
 RUN yum install git vim patch make gcc gcc-c++ zlib-devel libffi-devel openssl-devel bzip2-devel readline-devel sqlite-devel xz-devel -y && curl -sSL https://pyenv.run | bash
 
-RUN pyenv install 3.8.20 && pyenv install 3.9.25 && pyenv install 3.10.19 && pyenv install 3.11.14 && pyenv install 3.12.12 && pyenv install 3.13.9 && pyenv install 3.14.0
+RUN pyenv install 3.6.8 && pyenv install 3.8.20 && pyenv install 3.9.25 && pyenv install 3.10.19 && pyenv install 3.11.14 && pyenv install 3.12.12 && pyenv install 3.13.9 && pyenv install 3.14.0
 
 # Initialize pyenv to create shims directory, then fix permissions for non-root users
 RUN eval "$(pyenv init -)" && pyenv rehash || true

@@ -44,7 +44,7 @@ botmark/kylinos:v10-sp2-<amd64|arm64>[-<组件>]-YYYYMMDD
 | [`dragonwell-extended-jdk-maven/`](dragonwell-extended-jdk-maven/) | 在对应 Dragonwell 镜像上安装 Maven。 | Dragonwell 8/11/21 + Maven 3.9.16。 |
 | [`oraclejdk/`](oraclejdk/) | 在 `os` 上安装 Oracle JDK 8u202。 | 需要构建上下文中存在未随仓库提供的 `oraclejdk/jdk-8u202-linux-x64.tar.gz`。 |
 | [`oraclejdk-maven/`](oraclejdk-maven/) | 在 Oracle JDK 镜像上安装 Maven。 | Oracle JDK 8u202 + Maven 3.9.16。 |
-| [`python3/`](python3/) | 第一层用 pyenv 编译多个 Python；第二层添加 Oracle Instant Client。 | Python 3.8.20、3.9.25、3.10.19、3.11.14、3.12.12、3.13.9、3.14.0；默认 `PYENV_VERSION=3.12`。Oracle 层为 Instant Client 21.20.0.0.0。 |
+| [`python3/`](python3/) | 第一层用 pyenv 编译多个 Python；第二层添加 Oracle Instant Client。 | Python 3.6.8、3.8.20、3.9.25、3.10.19、3.11.14、3.12.12、3.13.9、3.14.0；默认 `PYENV_VERSION=3.12`。Oracle 层为 Instant Client 21.20.0.0.0。 |
 | [`nodejs/`](nodejs/) | 在 `os` 上安装 nvm 0.40.3、多个 Node.js 版本，并给每个版本全局安装 Yarn。 | Node.js 14.21.3 至 24.11.1（Dockerfile 中列出的离散版本）；默认 20.19.5。nvm 位于 root 用户目录。 |
 | [`tomcat/`](tomcat/) | 在 Dragonwell Extended 11 镜像上安装并校验 Tomcat。 | Tomcat 9.0.120，暴露 8080，以 `catalina.sh run` 启动。 |
 | [`nginx/`](nginx/) | 从源码构建麒麟版 Nginx，附带接近官方镜像的 entrypoint、模板变量替换、IPv6 和 worker 自动调优逻辑。 | Nginx 1.29.3 + njs 0.9.4，暴露 80；实际构建文件是 `kylin-V10SP2.nginx.Dockerfile`。 |
