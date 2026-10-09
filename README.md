@@ -1,6 +1,6 @@
 # KylinOS 基础镜像构建仓库
 
-本仓库用于构建并推送基于 **银河麒麟高级服务器操作系统 V10 SP2** 的 AMD64/x86_64 与 ARM64/aarch64 容器镜像。项目的主依赖链以 [`os/`](os/) 生成的麒麟基础镜像为唯一根节点，再逐层叠加 JDK、Maven、Python、Node.js、Nginx、Tomcat、Rust 等运行时。
+本仓库用于构建并推送基于 **银河麒麟高级服务器操作系统 V10 SP2** 的 AMD64/x86_64 与 ARM64/aarch64 容器镜像。项目的主依赖链以 [`os/`](os/) 生成的麒麟基础镜像为唯一根节点，再逐层叠加 JDK、Maven、Python、Node.js、Nginx、Tomcat、Rust、facereg 等运行时或业务基础环境。
 
 > 给 agent 的第一原则：先理解并构建 `os`，再处理其余镜像；除文末明确列出的两个例外外，不要把上游 CentOS、Debian 或 openEuler 镜像直接引入麒麟镜像链。
 
@@ -22,7 +22,8 @@ centos:centos8（仅用于 bootstrap）
 │   ├── nginx
 │   └── all-tools
 └── v10-sp2-arm64-<date>                         ARM64 os
-    └── rust1.98.1
+    ├── rust1.98.1
+    └── facereg-base                             Python 3.12.12 + venv
 ```
 
 所有统一管理的镜像均推送到 `botmark/kylinos`。完整标签由 [`common.sh`](common.sh) 生成：
@@ -49,6 +50,7 @@ botmark/kylinos:v10-sp2-<amd64|arm64>[-<组件>]-YYYYMMDD
 | [`tomcat/`](tomcat/) | 在 Dragonwell Extended 11 镜像上安装并校验 Tomcat。 | Tomcat 9.0.120，暴露 8080，以 `catalina.sh run` 启动。 |
 | [`nginx/`](nginx/) | 从源码构建麒麟版 Nginx，附带接近官方镜像的 entrypoint、模板变量替换、IPv6 和 worker 自动调优逻辑。 | Nginx 1.29.3 + njs 0.9.4，暴露 80；实际构建文件是 `kylin-V10SP2.nginx.Dockerfile`。 |
 | [`rust/`](rust/) | 在 ARM64 麒麟基础镜像上安装可复现的系统级 Rust 编译工具链和常用 native crate 构建依赖。 | ARM64/aarch64 专用；Rust 1.98.1，包含 Cargo、rustfmt、Clippy、GCC/G++、Make、CMake、pkg-config 与 OpenSSL 开发库。 |
+| [`facereg/`](facereg/) | 在 ARM64 麒麟基础镜像上用 pyenv 编译固定版本 Python 并建立 `/opt/venv`，提供 facereg 业务镜像所需的最小系统依赖和非 root 账号。目录中的 `kylin-V10SP2.facereg-base.Dockerfile` 是 CI 构建入口；业务参考 Dockerfile 不参与该基础层构建。 | ARM64/aarch64 专用；Python 3.12.12、venv、GCC、PostgreSQL 开发/运行库、OpenGL/GLib 运行库、curl、tzdata，以及 `appuser/appgroup`。不含 requirements、业务代码或完整 OpenCV 编译工具链。 |
 | [`copaw/`](copaw/) | 独立的工具型实验镜像，包含 SQLite、Python、Node.js、Chrome、LibreOffice、PDF/图像/OCR 依赖。 | **不属于麒麟依赖链**：直接基于 openEuler 22.03，且没有 `build.sh`、统一标签或 CI job。 |
 | [`.github/workflows/`](.github/workflows/) | GitHub Actions 自动构建。 | push 到 `main` 或手动触发；统一生成日期、登录 Docker Hub，并按依赖层级构建。 |
 | [`.claude/`](.claude/) | Claude 的本地权限配置。 | 仅允许若干 Git 命令，与镜像内容及构建链无关。 |
@@ -70,7 +72,7 @@ botmark/kylinos:v10-sp2-<amd64|arm64>[-<组件>]-YYYYMMDD
 - 可用的 Docker daemon；构建过程需要访问麒麟软件源、GitHub、Apache、Alibaba、Oracle 等下载站点。
 - 已执行 `docker login`，因为所有 `build.sh` 都会在构建成功后立即 `docker push`，没有单独的“只构建”开关。Docker Hub 推送不使用 SSH 公钥；推荐为本机创建具备 Read & Write 权限的 Personal Access Token，然后运行 `docker login --username botmark`，在 Password 提示处输入该 token。不要把 token 写入仓库或 shell 脚本。
 - 构建 Oracle JDK 分支前，自行合法取得 `jdk-8u202-linux-x64.tar.gz` 并放入 `oraclejdk/`。
-- JDK、Node.js、Python、Nginx 等现有运行时分支仍是 AMD64/x86_64 约定；ARM64 当前只发布 `os` 和 Rust 1.98.1，不能把 AMD64 组件标签直接用于 ARM 构建。
+- JDK、Node.js、Python、Nginx 等现有运行时分支仍是 AMD64/x86_64 约定；ARM64 当前发布 `os`、Rust 1.98.1 和 facereg base，不能把 AMD64 组件标签直接用于 ARM 构建。
 
 ### 手动构建示例
 
@@ -104,9 +106,10 @@ export BUILD_DATE=20260907
 
 (cd os && bash build-arm64.sh)
 (cd rust && bash build.sh)
+(cd facereg && bash build.sh)
 ```
 
-Docker 平台名使用 `linux/arm64`，而 Linux 内核与 RPM/yum 报告的架构名为 `aarch64`；二者表示同一种 ARM 64 位架构。两个 ARM 构建脚本都会在推送前验证实际架构，Rust 脚本还会编译并运行一个最小程序。
+Docker 平台名使用 `linux/arm64`，而 Linux 内核与 RPM/yum 报告的架构名为 `aarch64`；二者表示同一种 ARM 64 位架构。ARM 构建脚本都会在推送前验证实际架构；Rust 脚本还会编译并运行一个最小程序，facereg 脚本会验证 Python 标准扩展、系统 RPM、环境变量和应用账号。
 
 每个构建都使用 `--no-cache`。只想测试 Dockerfile、暂时不推送时，不要直接执行 `build.sh`；请从相应脚本复制其 `docker build` 命令并移除后续 `docker push`。
 
@@ -116,7 +119,7 @@ Docker 平台名使用 `linux/arm64`，而 Linux 内核与 RPM/yum 报告的架�
 
 1. `prepare`：生成本次统一的 `BUILD_DATE`。
 2. `os` 与 `os-arm64`：分别在 x86 runner 和 `ubuntu-24.04-arm` 原生 ARM runner 上构建两种麒麟基础镜像。
-3. `rust-arm64`：等待 ARM64 OS 完成后，在原生 ARM runner 上构建并验证 Rust 1.98.1 镜像。
+3. `rust-arm64` 与 `facereg-base-arm64`：等待 ARM64 OS 完成后，在原生 ARM runner 上分别构建并验证 Rust 1.98.1 和 facereg base 镜像。
 4. `all-tools` 与 `runtimes`：等待 AMD64 OS；前者单独构建，后者用 matrix 并行构建 OpenJDK、Dragonwell、Python、Node.js、Nginx。
 5. `maven-and-tomcat`：等待全部 AMD64 runtime 完成后，用 matrix 构建 OpenJDK/Dragonwell Maven 镜像和 Tomcat。
 
@@ -162,4 +165,5 @@ v10-sp2-amd64-nvm-YYYYMMDD
 v10-sp2-amd64-all-tools-YYYYMMDD
 v10-sp2-arm64-YYYYMMDD
 v10-sp2-arm64-rust1.98.1-YYYYMMDD
+v10-sp2-arm64-facereg-base-YYYYMMDD
 ```

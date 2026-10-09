@@ -7,6 +7,7 @@ os_image="$dockerhub_repo:v10-sp2-amd64-$build_date"
 arm64_os_image="$dockerhub_repo:v10-sp2-arm64-$build_date"
 
 arm64_rust1_98_1_image="$dockerhub_repo:v10-sp2-arm64-rust1.98.1-$build_date"
+arm64_facereg_base_image="$dockerhub_repo:v10-sp2-arm64-facereg-base-$build_date"
 
 openjdk8_image="$dockerhub_repo:v10-sp2-amd64-openjdk8-$build_date"
 openjdk17_image="$dockerhub_repo:v10-sp2-amd64-openjdk17-$build_date"
